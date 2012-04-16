@@ -190,6 +190,10 @@ static CURLcode file_connect(struct connectdata *conn, bool *done)
 #ifdef DOS_FILESYSTEM
   int i;
   char *actual_path;
+# if !defined(CURL_DOES_CONVERSION)
+  wchar_t *widePath = 0;
+  char *nativePath = 0;
+# endif
 #endif
 
   /* If there already is a protocol-specific struct allocated for this
@@ -246,13 +250,50 @@ static CURLcode file_connect(struct connectdata *conn, bool *done)
     if(actual_path[i] == '/')
       actual_path[i] = '\\';
 
-  fd = open_readonly(actual_path, O_RDONLY|O_BINARY);
-  file->path = actual_path;
+// 
+#if !defined(CURL_DOES_CONVERSION)
+  {
+	//post-escape, without conversions, our path is utf8
+	//but open_readonly will read it using the default code page 
+	//which is bad news on e.g. a japanese OS, so we must
+    //convert from utf8 to the local code page before opening the file
+	widePath = calloc(sizeof(wchar_t)*(strlen(actual_path)+1),1);
+	if (0 == widePath) {
+		return CURLE_OUT_OF_MEMORY;
+	}
+	MultiByteToWideChar(CP_UTF8, 0, actual_path, strlen(actual_path), widePath, strlen(actual_path)+1);
+	nativePath = calloc(wcslen(widePath)*4+1, 1);
+	if (0 == nativePath) {
+		free(widePath);
+		return CURLE_OUT_OF_MEMORY;
+	}
+	WideCharToMultiByte(CP_ACP, 0, widePath, wcslen(widePath), nativePath, wcslen(widePath)*4+1,0,0);
+#if 1 // open with the widechar path, keep the ACP path for reference
+	fd = _wopen(widePath, O_RDONLY | O_BINARY);
+	free(widePath);
+#else
+	free(widePath);
+
+	fd = open_readonly(nativePath, O_RDONLY|O_BINARY); /* no CR/LF translation */
+#endif
+	Curl_safefree(file->path);
+	Curl_safefree(real_path);
+	file->path = nativePath;
+	file->freepath = nativePath;
+
+  }
+#else
+	fd = open_readonly(actual_path, O_RDONLY|O_BINARY); /* no CR/LF translation */
+	file->path = actual_path;
+	file->freepath = real_path; /* free this when done */
+#endif
+
+  //
 #else
   fd = open_readonly(real_path, O_RDONLY);
   file->path = real_path;
-#endif
   file->freepath = real_path; /* free this when done */
+#endif
 
   file->fd = fd;
   if(!data->set.upload && (fd == -1)) {
