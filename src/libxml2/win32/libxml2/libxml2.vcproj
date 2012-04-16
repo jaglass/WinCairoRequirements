@@ -75,7 +75,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Install Headers"
-				CommandLine="mkdir &quot;$(SolutionDir)include\libxml&quot;&#x0D;&#x0A;xcopy /Y /R &quot;$(ProjectDir)..\..\include\libxml\*.h&quot; &quot;$(SolutionDir)include\libxml&quot;"
+				CommandLine="mkdir &quot;$(SolutionDir)include\libxml&quot;&#x0D;&#x0A;xcopy /Y /R &quot;$(ProjectDir)..\..\include\libxml\*.h&quot; &quot;$(SolutionDir)include\libxml&quot;&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -117,6 +117,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="wsock32.lib Ws2_32.lib"
+				GenerateDebugInformation="false"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -139,7 +140,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Install Headers"
-				CommandLine="mkdir &quot;$(SolutionDir)include\libxml&quot;&#x0D;&#x0A;xcopy /Y /R &quot;$(ProjectDir)..\..\include\libxml\*.h&quot; &quot;$(SolutionDir)include\libxml&quot;"
+				CommandLine="mkdir &quot;$(SolutionDir)include\libxml&quot;&#x0D;&#x0A;xcopy /Y /R &quot;$(ProjectDir)..\..\include\libxml\*.h&quot; &quot;$(SolutionDir)include\libxml&quot;&#x0D;&#x0A;"
 			/>
 		</Configuration>
 	</Configurations>
